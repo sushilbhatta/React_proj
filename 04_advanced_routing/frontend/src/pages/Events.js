@@ -1,5 +1,6 @@
-import { useLoaderData, json } from "react-router-dom";
+import { useLoaderData, json, defer, Await } from "react-router-dom";
 import EventsList from "../components/EventsList";
+import { Suspense } from "react";
 
 function EventsPage() {
   // useLoaderData is the special hook  used to get the data returned by loader in route Defn
@@ -11,17 +12,23 @@ function EventsPage() {
   //   return <p>{data.message}</p>;
   // }
   const events = data.events;
+  console.log(events);
 
   return (
     <>
-      <EventsList events={events} />
+      <Suspense fallback={<p style={{ textAlign: "center" }}>Loading....</p>}>
+        <Await resolve={events}>
+          {(loadEvents) => <EventsList events={loadEvents} />}
+        </Await>
+      </Suspense>
     </>
   );
 }
 
 export default EventsPage;
 // loader function is executed in the browser if=ven though code looks like a backend code
-export async function loader() {
+
+async function loadEvents() {
   // react router  resolve the promise by  sending response using browser Response constructor .
   // const res = new Response("any data of choice", { object with addn info like status code });
   // return res;
@@ -40,9 +47,14 @@ export async function loader() {
     // json is the helper utility fn provided by the react dom
     throw json({ message: "Could not fetch events" }, { status: 500 }); //we do not need to stingy json  when using the error message we donot need to parde back to object also
   } else {
-    return response;
-    // const resData = await response.json();
-    // return resData.events;
+    // return response;  directly returning response will not wowrk while defering
+    const resData = await response.json();
+    return resData.events;
     // could return obj,number,string ond so on
   }
+}
+export function loader() {
+  return defer({
+    events: loadEvents(),
+  });
 }

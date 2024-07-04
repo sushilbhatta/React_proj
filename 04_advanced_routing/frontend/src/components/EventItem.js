@@ -1,9 +1,15 @@
-import { Link } from "react-router-dom";
+import { Link, useSubmit } from "react-router-dom";
 import classes from "./EventItem.module.css";
 
 function EventItem({ event }) {
+  const submit = useSubmit();
   function startDeleteHandler() {
-    // ...
+    const proceed = window.confirm("Are you sure?");
+    if (proceed) {
+      // 1st argument is data which is in form of  formData obj
+      // since our action is not using Form component we need to  use useSubmit() hook to  extract the data submiited by the form  in this case it is null
+      submit(null, { method: "delete" }); //action: "/a-diff-path"
+    }
   }
 
   return (
